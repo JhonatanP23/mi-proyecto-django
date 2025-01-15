@@ -35,7 +35,8 @@
                             {% endif %}
                         </div>
                         <div class="card-body">
-                            <div class="product-title">{{ product.name }}</div>
+                            <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+                            <div class="product-title">{{ product.name }}  </div></a>
                             <div class="product-description">{{ product.description|truncatechars:100 }}</div>
                             <p class="card-text"><strong>Precio:</strong> ${{ product.price|floatformat:0 }}</p>
                             <p class="card-text"><strong>Stock:</strong> {{ product.stock }}</p>
@@ -55,7 +56,6 @@
                                 <button type="submit" class="btn btn-primary mt-2">Agregar al Carrito</button>
                             </form>
                             {% endif %}
-                            
                         </div>
                     </div>
                 </div>
@@ -85,6 +85,8 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
+ 
     
         .product-description {
             height: 60px; /* Altura uniforme para descripciones */

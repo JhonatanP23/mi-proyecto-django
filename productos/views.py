@@ -13,6 +13,7 @@ from django import template
 from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
 
+
 register = template.Library()
 
 
@@ -82,8 +83,8 @@ def product_list(request):
 
 
 def product_detail(request, pk):
-    product = Product.objects.get(id=pk)
-    return render(request, 'products/product_detail.html', {'product': product})
+    productos = Product.objects.get(id=pk)
+    return render(request, 'productos/product_detail.html', {'product': productos})
 
 @permission_required('productos.can_manage_products', raise_exception=True)
 def add_product(request):
@@ -105,12 +106,16 @@ def add_product(request):
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
+        print(request.POST)
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
+            print("Formulario válido")
             form.save()
             return redirect('product_list')  # Redirigir a la lista de productos
     else:
         form = ProductForm(instance=product)
+        form.fields['price'].initial = str(form.instance.price).replace(',', '.')
+        print("Errores en el formulario:", form.errors)
     return render(request, 'productos/edit_product.html', {'form': form, 'product': product})
 
 @login_required
@@ -143,7 +148,7 @@ def cart(request):
 
     return render(request, 'productos/cart.html', {'products': products, 'total': total})
 
-def add_all_to_cart(request):
+#def add_all_to_cart(request):
     if request.method == 'POST':
         # Obtener el carrito de la sesión o inicializarlo
         cart = request.session.get('cart', {})
@@ -193,6 +198,19 @@ def add_to_cart(request, product_id):
         return redirect('cart')
     return redirect('product_list')
 
+@login_required
+def remove_from_cart(request, product_id):
+    cart = request.session.get('cart', {})
+    
+    # Elimina el producto del carrito si existe
+    if str(product_id) in cart:
+        del cart[str(product_id)]
+        request.session['cart'] = cart  # Guarda el carrito actualizado en la sesión
+        messages.success(request, 'El producto fue eliminado del carrito.')
+    else:
+        messages.error(request, 'El producto no está en el carrito.')
+    
+    return redirect('cart')  # Redirige al carrito
 @login_required
 def checkout(request):
     cart = request.session.get('cart', {})

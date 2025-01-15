@@ -26,10 +26,16 @@
                     <td>${{ item.product.price|floatformat:0 }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>${{ item.subtotal|floatformat:0 }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'remove_from_cart' item.product.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
                     <td>${{ total|floatformat:0 }}</td>
                 </tr>
             </tbody>

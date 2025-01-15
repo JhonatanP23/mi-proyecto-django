@@ -41,7 +41,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="id_price" class="form-label">Precio:</label>
-                        <input type="number" name="price" id="id_price" class="form-control" value="{{ form.price.value }}">
+                        <input type="number"  value=" {{form.price.value}}" name="price" id="id_price" class="form-control" >
+                        {{form.price.value}}
                     </div>
                     <div class="mb-3">
                         <label for="id_stock" class="form-label">Cantidad:</label>

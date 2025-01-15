@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4a4a4a;
+        }
+
+        .login-container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-container label {
+            margin-bottom: 5px;
+            color: #4a4a4a;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .login-container button {
+            padding: 10px;
+            background-color: #6e8efb;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-container button:hover {
+            background-color: #a777e3;
+        }
+
+        .login-container a {
+            text-decoration: none;
+            color: #6e8efb;
+            text-align: center;
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Iniciar Sesión</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="username">Nombre de Usuario</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+        <a href="{% url 'registro' %}">¿No tienes una cuenta? Regístrate aquí</a>
+    </div>
+</body>
+</html>

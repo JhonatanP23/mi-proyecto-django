@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Lista de Productos</h1>
+            <a href="{% url 'logout' %}" class="btn btn-dark">Cerrar sesión</a>
+        </div>
+        {% if products %}
+            <div class="row">
+                {% for product in products %}
+                <div class="col-md-4">
+                    <div class="card mb-3 product-card">
+                        <div class="position-relative">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/150" class="card-img-top product-image" alt="Sin imagen">
+                            {% endif %}
+                            {% if can_manage_products %}
+                            <form method="post" action="{% url 'delete_product' product.pk %}" 
+                                  class="position-absolute top-0 end-0 m-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" 
+                                        onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">
+                                    <img width="45" height="45" src="https://img.icons8.com/wired/64/delete.png" alt="delete" />
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="product-title">{{ product.name }}</div>
+                            <div class="product-description">{{ product.description|truncatechars:100 }}</div>
+                            <p class="card-text"><strong>Precio:</strong> ${{ product.price|floatformat:0 }}</p>
+                            <p class="card-text"><strong>Stock:</strong> {{ product.stock }}</p>
+                            {% if can_manage_products %}
+                            <div class="text-center">
+                                <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning">Editar</a>
+                            </div>
+                            {% endif %}
+                            {% if not can_manage_products %}
+                            <form method="POST" action="{% url 'add_to_cart' product.pk %}" class="text-center">
+                                {% csrf_token %}
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <button type="button" class="btn btn-secondary btn-sm me-2" onclick="updateQuantity('{{ product.pk }}', -1)">-</button>
+                                    <input type="number" id="quantity-{{ product.pk }}" name="quantity" value="1" min="1" class="form-control w-25 text-center">
+                                    <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="updateQuantity('{{ product.pk }}', 1)">+</button>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-2">Agregar al Carrito</button>
+                            </form>
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center" role="alert">
+                No hay productos disponibles.
+            </div>
+        {% endif %}
+    </div>
+    {% if can_manage_products %}
+    <div class="text-center mt-3">
+        <a href="{% url 'add_product' %}" class="btn btn-success">Agregar Producto</a>
+    </div>
+    {% endif %}
+    <style>
+        .product-image {
+            height: 400px; /* Altura fija */
+            width: 100%; /* Ancho completo */
+            object-fit: cover; /* Recorta y centra la imagen para ajustarse */
+        }
+    
+        .product-card {
+            min-height: 450px; /* Altura uniforme para las tarjetas */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    
+        .product-description {
+            height: 60px; /* Altura uniforme para descripciones */
+            overflow: hidden; /* Ocultar contenido adicional */
+            text-overflow: ellipsis;
+        }
+    
+        .product-title {
+            height: 40px; /* Altura uniforme para los títulos */
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+    </style>
+</body>
+</html>
+
+<script>
+    function updateQuantity(productId, change) {
+        const inputField = document.getElementById(`quantity-${productId}`);
+        let currentValue = parseInt(inputField.value) || 1;
+        currentValue = Math.max(1, currentValue + change); // Evitar valores menores a 1
+        inputField.value = currentValue;
+    }
+</script>

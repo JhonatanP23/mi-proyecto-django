@@ -23,6 +23,7 @@
     </script>
 </head>
 <body>
+    {% load custom_filters %}
     <div class="container mt-5">
         <div class="card shadow">
             <div class="card-header text-center bg-primary text-white">
@@ -41,8 +42,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="id_price" class="form-label">Precio:</label>
-                        <input type="number"  value=" {{form.price.value}}" name="price" id="id_price" class="form-control" >
-                        {{form.price.value}}
+                        <input type="number"  value=" {{form.price.value|add_thousands_separator}}" name="price" id="id_price" class="form-control" >
+                       $ {{form.price.value|add_thousands_separator}}
                     </div>
                     <div class="mb-3">
                         <label for="id_stock" class="form-label">Cantidad:</label>

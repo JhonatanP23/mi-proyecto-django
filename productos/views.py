@@ -12,6 +12,7 @@ from django.contrib.auth import logout
 from django import template
 from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
+from .models import Purchase
 
 
 register = template.Library()
@@ -29,7 +30,7 @@ def login_view(request):
             if user is not None:
                 print("Usuario autenticado")
                 login(request, user)
-                return redirect('product_list')
+                return redirect('home')
             else:
                 print("Usuario o contraseña incorrectos")
                 messages.error(request, 'Usuario o contraseña incorrectos.')
@@ -64,6 +65,18 @@ def registro(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'registro/registro.html', {'form': form})
+
+
+def home(request):
+    featured_products = Product.objects.all()[:3]
+    return render(request, 'productos/home.html', {'featured_products': featured_products})
+
+def purchase_history(request):
+    if not request.user.is_authenticated:
+        return redirect('login') 
+    purchases = Purchase.objects.filter(user=request.user).order_by('-purchased_at')
+    print(purchases)
+    return render(request, 'productos/purchase_history.html', {'purchases': purchases})
 
 @login_required
 def product_list(request):
@@ -148,34 +161,6 @@ def cart(request):
 
     return render(request, 'productos/cart.html', {'products': products, 'total': total})
 
-#def add_all_to_cart(request):
-    if request.method == 'POST':
-        # Obtener el carrito de la sesión o inicializarlo
-        cart = request.session.get('cart', {})
-
-        # Obtener las cantidades de los productos enviadas en el formulario
-        quantities = request.POST.getlist('quantities')
-        product_ids = request.POST.getlist('product_ids')
-
-        # Comprobar que las listas de cantidades e IDs sean del mismo tamaño
-        if len(quantities) != len(product_ids):
-            messages.error(request, 'Hubo un error con la cantidad de productos seleccionados.')
-            return redirect('product_list')
-
-        # Procesar cada producto y su cantidad
-        for product_id, quantity in zip(product_ids, quantities):
-            product = get_object_or_404(Product, pk=product_id)
-            quantity = int(quantity)
-            cart[str(product_id)] = cart.get(str(product_id), 0) + quantity
-
-        # Guardar el carrito actualizado en la sesión
-        request.session['cart'] = cart
-        request.session.modified = True  # Asegura que se guarde la sesión
-        messages.success(request, 'Productos agregados al carrito.')
-
-        return redirect('cart')
-    return redirect('product_list')
-
 @login_required
 def add_to_cart(request, product_id):
     if request.method == 'POST':
@@ -223,9 +208,23 @@ def checkout(request):
         if not product.reduce_stock(quantity):
             messages.error(request, f'No hay suficiente stock para {product.name}.')
             return redirect('cart')
+        
+         # Registrar la compra
+        total_price = product.price * quantity
+        Purchase.objects.create(
+            user=request.user,
+            product=product,
+            quantity=quantity,
+            total_price=total_price
+        )
+        
+        # Reducir el stock
+        product.stock -= quantity
+        product.save()
 
     # Limpia el carrito después de la compra
     request.session['cart'] = {}
+    request.session.modified = True
     messages.success(request, 'La compra se realizó exitosamente.')
     return redirect('product_list')
 
@@ -233,3 +232,11 @@ def checkout(request):
 def logout_view(request):
     logout(request)  # Cierra la sesión del usuario
     return redirect('login')  # Redirige al formulario de inicio de sesión
+
+@login_required
+def purchase_history(request):
+    if request.user.is_superuser:
+        purchases = Purchase.objects.all().order_by('-purchased_at')  # Admin ve todo
+    else:
+        purchases = Purchase.objects.filter(user=request.user).order_by('-purchased_at')  # Usuarios ven sus compras
+    return render(request, 'productos/purchase_history.html', {'purchases': purchases})

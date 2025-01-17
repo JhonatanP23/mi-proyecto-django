@@ -101,3 +101,7 @@ LOGIN_REDIRECT_URL = 'product_list'  # Redirige al listado de productos
 LOGOUT_REDIRECT_URL = '/login'  # Redirige al login tras el cierre de sesión
 LOGIN_URL = 'login'  # Redirige al login si no está autenticado
 
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -23,7 +23,7 @@
             <div class="card-body">
                 <h1 class="card-title">{{ product.name }}</h1>
                 <p class="card-text">{{ product.description }}</p>
-                <p><strong>Precio:</strong> ${{ product.price|floatformat:0 }}</p>
+                <p><strong>Precio:</strong> ${{ product.price|add_thousands_separator }}</p>
                 <p><strong>Stock:</strong> {{ product.stock }}</p>
             </div>
         </div>

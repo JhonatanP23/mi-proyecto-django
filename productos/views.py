@@ -1,18 +1,14 @@
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product
+from .models import Product, Purchase
 from .forms import ProductForm
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
-from django import forms
-from django.contrib.auth import logout
-from django import template
-from django.contrib.auth.decorators import permission_required
+from django import forms, template
 from django.http import JsonResponse
-from .models import Purchase
+
 
 
 register = template.Library()
@@ -30,7 +26,7 @@ def login_view(request):
             if user is not None:
                 print("Usuario autenticado")
                 login(request, user)
-                return redirect('home')
+                return redirect('registro/home')
             else:
                 print("Usuario o contraseña incorrectos")
                 messages.error(request, 'Usuario o contraseña incorrectos.')

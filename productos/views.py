@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 from django import forms, template
 from django.http import JsonResponse
+from django.db import transaction
 
 
 
@@ -81,13 +82,27 @@ def product_list(request):
     if request.user.is_superuser:
         can_manage_products = True
 
-    # Retorna un solo diccionario de contexto
+    # Aplicar filtros
+    precio_min = request.GET.get('precio_min')
+    precio_max = request.GET.get('precio_max')
+    nombre_producto = request.GET.get('nombre_producto')
+
+    if precio_min:
+        productos = productos.filter(price__gte=precio_min)
+    if precio_max:
+        productos = productos.filter(price__lte=precio_max)
+    if nombre_producto:
+        productos = productos.filter(name__icontains=nombre_producto)
+
+    # Pasar todos los productos para el filtro del nombre
+    todos_los_productos = Product.objects.all()
+
     return render(request, 'productos/product_list.html', {
         'products': productos,
-        'can_manage_products': can_manage_products
+        'can_manage_products': can_manage_products,
+        'todos_los_productos': todos_los_productos,
     })
 
-    
 
 
 
@@ -192,6 +207,8 @@ def remove_from_cart(request, product_id):
         messages.error(request, 'El producto no está en el carrito.')
     
     return redirect('cart')  # Redirige al carrito
+
+
 @login_required
 def checkout(request):
     cart = request.session.get('cart', {})
@@ -199,30 +216,39 @@ def checkout(request):
         messages.error(request, 'El carrito está vacío.')
         return redirect('product_list')
 
-    for product_id, quantity in cart.items():
-        product = get_object_or_404(Product, pk=int(product_id))
-        if not product.reduce_stock(quantity):
-            messages.error(request, f'No hay suficiente stock para {product.name}.')
-            return redirect('cart')
-        
-         # Registrar la compra
-        total_price = product.price * quantity
-        Purchase.objects.create(
-            user=request.user,
-            product=product,
-            quantity=quantity,
-            total_price=total_price
-        )
-        
-        # Reducir el stock
-        product.stock -= quantity
-        product.save()
+    try:
+        with transaction.atomic():
+            product_ids = map(int, cart.keys())
+            products = Product.objects.filter(pk__in=product_ids)
 
-    # Limpia el carrito después de la compra
-    request.session['cart'] = {}
-    request.session.modified = True
-    messages.success(request, 'La compra se realizó exitosamente.')
-    return redirect('product_list')
+            for product in products:
+                quantity = cart[str(product.id)]
+                if product.stock < quantity:
+                    messages.error(request, f'No hay suficiente stock para {product.name}.')
+                    return redirect('cart')
+
+                # Registrar la compra
+                total_price = product.price * quantity
+                Purchase.objects.create(
+                    user=request.user,
+                    product=product,
+                    quantity=quantity,
+                    total_price=total_price
+                )
+
+                # Reducir el stock
+                product.stock -= quantity
+                product.save()
+
+            # Limpia el carrito después de la compra
+            request.session['cart'] = {}
+            request.session.modified = True
+            messages.success(request, 'La compra se realizó exitosamente.')
+            return redirect('product_list')
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error al procesar la compra: {str(e)}')
+        return redirect('cart')
+
 
 
 def logout_view(request):

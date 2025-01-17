@@ -8,30 +8,77 @@
 </head>
 <body>
     {% load custom_filters %}
-    <header class="hero-section">
-        <div class="text-center">
-            <h1 class="hero-text">Bienvenido a Tienda CRUD</h1>
-            <p>Encuentra los mejores productos a precios increíbles</p>
-            <a href="{% url 'home' %}" class="btn btn-primary btn-lg">inicio</a>
+
+    <!-- Header -->
+    <header class="py-3" style="background-color: #f8cfdc;">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="m-0" style="color: #6b5b95;">Tienda CRUD</h1>
+            <nav class="d-flex gap-3">
+                <a href="{% url 'home' %}" class="btn btn-primary btn-sm" style="background-color: #c1e1c1; color: #4a4747;">Inicio</a>
+                <a href="{% url 'purchase_history' %}" class="btn btn-secondary btn-sm" style="background-color: #ffcccb; color: #4a4747;">Historial de Compras</a>
+                {% if can_manage_products %}
+                    <a href="{% url 'add_product' %}" class="btn btn-success btn-sm" style="background-color: #f4d6a0; color: #4a4747;">Agregar Producto</a>
+                {% endif %}
+                <a href="{% url 'cart' %}" class="btn btn-info btn-sm" style="background-color: #b2d9ea; color: #4a4747;">Ir al Carrito</a>
+                <a href="{% url 'logout' %}" class="btn btn-dark btn-sm" style="background-color: #b2d9ea; color: #4a4747;">Cerrar Sesión</a>
+            </nav>
         </div>
     </header>
-    <div class="container mt-5">
+
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-3" style="background: url('https://via.placeholder.com/1500x300') no-repeat center center/cover; color: #4a4747;">
+        <h1 class="hero-text" style="font-size: 2rem; font-weight: bold;">Bienvenido a Tienda CRUD</h1>
+        <p style="font-size: 1.2rem;">Encuentra los mejores productos a precios increíbles</p>
+    </div><br><br><br>
+
+    <!-- Filter Section -->
+    <div class="container col-md-7 ">
+        <form method="get" class="mb-4">
+            <div class="row">
+                <!-- Filtro por rango de precios -->
+                <div class="col-md-4 mb-3">
+                    <label for="precio_min" class="form-label">Precio Mínimo</label>
+                    <input type="number" id="precio_min" name="precio_min" class="form-control" placeholder="Precio mínimo" value="{{ request.GET.precio_min }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="precio_max" class="form-label">Precio Máximo</label>
+                    <input type="number" id="precio_max" name="precio_max" class="form-control" placeholder="Precio máximo" value="{{ request.GET.precio_max }}">
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="nombre_producto" class="form-label">Nombre del Producto</label>
+                    <select id="nombre_producto" name="nombre_producto" class="form-select">
+                        <option value="" {% if not request.GET.nombre_producto %}selected{% endif %}>Todos los productos</option>
+                        {% for producto in todos_los_productos %}
+                        <option value="{{ producto.nombre }}" {% if request.GET.nombre_producto == producto.nombre %}selected{% endif %}>
+                            {{ producto.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 offset-md-4 mb-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filtrar 
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Lista de Productos</h1>
-            <div class="btn-group" role="group" aria-label="Botones de navegación">
-                <a href="{% url 'purchase_history' %}" class="btn btn-info btn-sm">Historial de Compras</a>
-                {% if can_manage_products %}
-                <a href="{% url 'add_product' %}" class="btn btn-success btn-sm">Agregar Producto</a>
-                {% endif %}
-                <a href="{% url 'logout' %}" class="btn btn-dark btn-sm">Cerrar Sesión</a>
-            </div>
         </div>
         
         {% if products %}
             <div class="row">
                 {% for product in products %}
                 <div class="col-md-4">
-                    <div class="card mb-3 product-card">
+                    <div class="card mb-3 product-card" style="border: 2px solid #f8cfdc; border-radius: 15px;">
                         <div class="position-relative">
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
@@ -51,23 +98,23 @@
                         </div>
                         <div class="card-body">
                             <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
-                            <div class="product-title">{{ product.name }}  </div></a>
+                            <div class="product-title">{{ product.name }}</div></a>
                             <p class="card-text"><strong>Precio:</strong> $<span class="price">{{ product.price|add_thousands_separator }}</span></p>
                             <p class="card-text"><strong>Stock:</strong> {{ product.stock }}</p>
                             {% if can_manage_products %}
                             <div class="text-center">
-                                <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning">Editar</a>
+                                <a href="{% url 'edit_product' product.pk %}" class="btn btn-warning" style="background-color: #ffe4b5; color: #4a4747;">Editar</a>
                             </div>
                             {% endif %}
                             {% if not can_manage_products %}
                             <form method="POST" action="{% url 'add_to_cart' product.pk %}" class="text-center">
                                 {% csrf_token %}
                                 <div class="d-flex justify-content-center align-items-center">
-                                    <button type="button" class="btn btn-secondary btn-sm me-2" onclick="updateQuantity('{{ product.pk }}', -1)">-</button>
+                                    <button type="button" class="btn btn-secondary btn-sm me-2" style="background-color: #f8cfdc; color: #4a4747;" onclick="updateQuantity('{{ product.pk }}', -1)">-</button>
                                     <input type="number" id="quantity-{{ product.pk }}" name="quantity" value="1" min="1" class="form-control w-25 text-center">
-                                    <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="updateQuantity('{{ product.pk }}', 1)">+</button>
+                                    <button type="button" class="btn btn-secondary btn-sm ms-2" style="background-color: #f8cfdc; color: #4a4747;" onclick="updateQuantity('{{ product.pk }}', 1)">+</button>
                                 </div>
-                                <button type="submit" class="btn btn-primary mt-2">Agregar al Carrito</button>
+                                <button type="submit" class="btn btn-primary mt-2" style="background-color: #c1e1c1; color: #4a4747;">Agregar al Carrito</button>
                             </form>
                             {% endif %}
                         </div>
@@ -81,46 +128,33 @@
             </div>
         {% endif %}
     </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4" style="background-color: #c1e1c1; color: #4a4747; margin-top: 20px;">
+        <p>&copy; 2025 Tienda CRUD. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Styles -->
     <style>
         .product-image {
-            height: 400px; /* Altura fija */
-            width: 100%; /* Ancho completo */
-            object-fit: cover; /* Recorta y centra la imagen para ajustarse */
+            height: 400px;
+            width: 100%;
+            object-fit: cover;
         }
     
         .product-card {
-            min-height: 450px; /* Altura uniforme para las tarjetas */
+            min-height: 450px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
- 
-    
-        .product-description {
-            height: 60px; /* Altura uniforme para descripciones */
-            overflow: hidden; /* Ocultar contenido adicional */
-            text-overflow: ellipsis;
-        }
-    
-        .product-title {
-            height: 40px; /* Altura uniforme para los títulos */
-            font-size: 1.25rem;
-            font-weight: bold;
+        .hero-section {
+            height: 6vh;
         }
 
-        .hero-section {
-            background: url('https://via.placeholder.com/1500x500') no-repeat center center/cover;
-            height: 35vh; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #343a40; 
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .hero-text {
-            font-size: 2.5rem;
-            font-weight: bold;
+        .btn {
+            border: none;
         }
     </style>
 </body>
@@ -130,21 +164,7 @@
     function updateQuantity(productId, change) {
         const inputField = document.getElementById(`quantity-${productId}`);
         let currentValue = parseInt(inputField.value) || 1;
-        currentValue = Math.max(1, currentValue + change); // Evitar valores menores a 1
+        currentValue = Math.max(1, currentValue + change);
         inputField.value = currentValue;
-
-
-    document.querySelectorAll('.price').forEach(priceElement => {
-        const rawValue = parseFloat(priceElement.textContent);
-            if (!isNaN(rawValue)) {
-                priceElement.textContent = rawValue.toLocaleString('es-ES', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-                });
-            }
-        });
-
-        
-        
     }
 </script>

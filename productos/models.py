@@ -18,6 +18,7 @@ class Product(models.Model):
     
     def reduce_stock(self, quantity):
         if self.stock >= quantity:
+            
             self.stock -= quantity
             self.save()
             return True
@@ -35,7 +36,7 @@ class Product(models.Model):
 class Purchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     purchased_at = models.DateTimeField(auto_now_add=True)
 

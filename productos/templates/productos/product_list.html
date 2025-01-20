@@ -19,7 +19,9 @@
                 {% if can_manage_products %}
                     <a href="{% url 'add_product' %}" class="btn btn-success btn-sm" style="background-color: #f4d6a0; color: #4a4747;">Agregar Producto</a>
                 {% endif %}
+                {% if not can_manage_products %}
                 <a href="{% url 'cart' %}" class="btn btn-info btn-sm" style="background-color: #b2d9ea; color: #4a4747;">Ir al Carrito</a>
+                {% endif %}
                 <a href="{% url 'logout' %}" class="btn btn-dark btn-sm" style="background-color: #b2d9ea; color: #4a4747;">Cerrar Sesión</a>
             </nav>
         </div>
@@ -31,43 +33,66 @@
         <p style="font-size: 1.2rem;">Encuentra los mejores productos a precios increíbles</p>
     </div><br><br><br>
 
-    <!-- Filter Section -->
-    <div class="container col-md-7 ">
-        <form method="get" class="mb-4">
-            <div class="row">
-                <!-- Filtro por rango de precios -->
-                <div class="col-md-4 mb-3">
-                    <label for="precio_min" class="form-label">Precio Mínimo</label>
-                    <input type="number" id="precio_min" name="precio_min" class="form-control" placeholder="Precio mínimo" value="{{ request.GET.precio_min }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="precio_max" class="form-label">Precio Máximo</label>
-                    <input type="number" id="precio_max" name="precio_max" class="form-control" placeholder="Precio máximo" value="{{ request.GET.precio_max }}">
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label for="nombre_producto" class="form-label">Nombre del Producto</label>
-                    <select id="nombre_producto" name="nombre_producto" class="form-select">
-                        <option value="" {% if not request.GET.nombre_producto %}selected{% endif %}>Todos los productos</option>
-                        {% for producto in todos_los_productos %}
-                        <option value="{{ producto.nombre }}" {% if request.GET.nombre_producto == producto.nombre %}selected{% endif %}>
-                            {{ producto.nombre }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+    <div class="d-flex justify-content-center mt-4">
+        <div class="card shadow-sm border-0 col-md-6">
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <!-- Filtro por rango de precios -->
+                        <div class="col-md-6 mb-3">
+                            <label for="precio_min" class="form-label">Precio Mínimo</label>
+                            <input 
+                                type="number" 
+                                id="precio_min" 
+                                name="precio_min" 
+                                class="form-control" 
+                                placeholder="Precio mínimo" 
+                                value="{{ request.GET.precio_min }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="precio_max" class="form-label">Precio Máximo</label>
+                            <input 
+                                type="number" 
+                                id="precio_max" 
+                                name="precio_max" 
+                                class="form-control" 
+                                placeholder="Precio máximo" 
+                                value="{{ request.GET.precio_max }}">
+                        </div>
+    
+                        <!-- Filtro por nombre del producto -->
+                        <div class="col-12 mb-3">
+                            <label for="nombre_producto" class="form-label">Nombre del Producto</label>
+                            <select 
+                                id="nombre_producto" 
+                                name="nombre_producto" 
+                                class="form-select">
+                                <option value="" {% if not request.GET.nombre_producto %}selected{% endif %}>
+                                    Todos los productos
+                                </option>
+                                {% for producto in todos_los_productos %}
+                                <option 
+                                    value="{{ producto.name }}" 
+                                    {% if request.GET.nombre_producto == producto.name %}selected{% endif %}>
+                                    {{ producto.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+    
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <div class="row">
-                <div class="col-md-4 offset-md-4 mb-3">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Filtrar 
-                    </button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
-
+    
     <!-- Main Content -->
     <div class="container mt-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
